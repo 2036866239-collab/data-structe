@@ -2,13 +2,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define  ROWS 11
+#define ROWS 11
 #define COLS 11
 
-typedef struct{int incx, int incy;}Direction; //方向增量。
-typedef struct{int x,y;int di;} Box; //路径。
- 
-static const Direction direct[4] = {{0,1},{1,0},{0,-1},{-1,0}} //注意优先级，向右和向下的优先级肯定是最高的。
+typedef struct { int incx, incy; } Direction; // 行、列坐标的增量
+// di 记录已经尝试过的最后一个方向；-1 表示还没试过。
+typedef struct { int x, y; int di; } Box;
+
+// 寻路依次尝试右、下、左、上；生成迷宫时会打乱顺序。
+static const Direction direct[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 
 void carve(int maze [ROWS][COLS],int x,int y){
     maze[x][y] = 0;
@@ -16,7 +18,7 @@ void carve(int maze [ROWS][COLS],int x,int y){
     int order[4] ={0,1,2,3};
     for (int i = 3; i > 0; i--) {
         int j = rand() % (i + 1);
-        int t = order[i]; order[i] = order[j]; order[j] = t;
+        int t = order[i]; order[i] = order[j]; order[j] = t;  //洗牌算法
     }
 
     for (int k = 0; k < 4; k++) {
@@ -36,7 +38,7 @@ void generateMaze(int maze[ROWS][COLS]){
         maze[i][j] = 1;
     carve(maze,0,0);
     int cnt = 0;
-    while (cnt < 3) {
+    while (cnt < 3) {           //在已生成好的迷宫上，利用随机函数进行挖洞。
         int x = rand() % ROWS, y = rand() % COLS;
         if (x % 2 != y % 2 && maze[x][y] == 1) {
             maze[x][y] = 0;
@@ -44,6 +46,13 @@ void generateMaze(int maze[ROWS][COLS]){
         }
     }
 }
+
+bool findPath(int maze[ROWS][COLS])
+{
+    bool visited[ROWS][COLS] = {false};
+    Box stack[ROWS * COLS];
+    int top = 0;
+    stack[0] = (Box){0, 0, -1};
     visited[0][0] = 1;
 
     while (top >= 0) {
@@ -67,14 +76,23 @@ void generateMaze(int maze[ROWS][COLS]){
         visited[line][col] = 1;
         stack[++top] = (Box){line, col, -1};
     }
-    return false;
+    return false; //DFS 寻路。
+}
+
+void printMaze(int maze[ROWS][COLS])
+{
+    for (int x = 0; x < ROWS; x++) {
+        for (int y = 0; y < COLS; y++) {
+            putchar(maze[x][y] == 1 ? '#' : '.');
+        }
+        putchar('\n');
+    }
 }
 
 /* ================== 4. 主程序 ================== */
 
 int main(void)
 {
-    srand((unsigned)time(NULL));
 
     int maze[ROWS][COLS];        // 注意：不能是 const，因为要被挖
     generateMaze(maze);
