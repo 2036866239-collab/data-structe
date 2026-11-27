@@ -18,7 +18,7 @@ void carve(int maze [ROWS][COLS],int x,int y){
     int order[4] ={0,1,2,3};
     for (int i = 3; i > 0; i--) {
         int j = rand() % (i + 1);
-        int t = order[i]; order[i] = order[j]; order[j] = t;  //洗牌算法
+        int t = order[i]; order[i] = order[j]; order[j] = t;  //洗牌算法，靠变量 t 来交换值来打乱顺序。
     }
 
     for (int k = 0; k < 4; k++) {
@@ -57,7 +57,9 @@ bool findPath(int maze[ROWS][COLS])
 
     while (top >= 0) {
         Box *current = &stack[top];
-
+        int di   = ++current->di;
+        int line = current->x + direct[di].incx;
+        int col  = current->y + direct[di].incy;
         if (current->x == ROWS-1 && current->y == COLS-1) {
             for (int i = 0; i <= top; i++)
                 printf("(%d,%d)%s", stack[i].x, stack[i].y,
@@ -65,11 +67,6 @@ bool findPath(int maze[ROWS][COLS])
             return true;
         }
         if (current->di == 3) { top--; continue; }
-
-        int di   = ++current->di;
-        int line = current->x + direct[di].incx;
-        int col  = current->y + direct[di].incy;
-
         if (line < 0 || line >= ROWS || col < 0 || col >= COLS) continue;
         if (maze[line][col] != 0 || visited[line][col]) continue;
 
@@ -100,8 +97,6 @@ int main(void)
     printMaze(maze);
     putchar('\n');
 
-    if (!findPath(maze))
-        puts("没有路径");        // 理论上永远不会执行
-    return 0;
+    findPath(maze[ROWS][COLS]);
 }
 
